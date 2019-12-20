@@ -63,12 +63,11 @@ std::string BraveRewardsSource::GetSource() {
 }
 
 void BraveRewardsSource::StartDataRequest(
-    const std::string& path,
+    const GURL& url,
     const content::WebContents::Getter& wc_getter,
-    const content::URLDataSource::GotDataCallback& got_data_callback) {
-  GURL url(path);
+    content::URLDataSource::GotDataCallback got_data_callback) {
   if (!url.is_valid()) {
-    got_data_callback.Run(nullptr);
+    std::move(got_data_callback).Run(nullptr);
     return;
   }
 
@@ -138,17 +137,17 @@ bool BraveRewardsSource::ShouldServiceRequest(
 }
 
 void BraveRewardsSource::OnBitmapFetched(
-    const content::URLDataSource::GotDataCallback& got_data_callback,
+    content::URLDataSource::GotDataCallback got_data_callback,
     BitmapFetcherService::RequestId request_id,
     const GURL& url,
     const SkBitmap& bitmap) {
   if (bitmap.isNull()) {
     LOG(ERROR) << "Failed to retrieve Brave Rewards resource, url: " << url;
-    got_data_callback.Run(nullptr);
+    std::move(got_data_callback).Run(nullptr);
     return;
   }
 
-  got_data_callback.Run(BitmapToMemory(&bitmap).get());
+  std::move(got_data_callback).Run(BitmapToMemory(&bitmap).get());
 
   auto it_url =
       find(resource_fetchers_.begin(), resource_fetchers_.end(), url.spec());
